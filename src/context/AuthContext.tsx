@@ -8,7 +8,12 @@ interface AuthContextType {
   role: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  allUsers: Profile[];
   login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
+  quickLoginWithPasskey: (
+    targetRole: 'admin' | 'officer' | 'citizen',
+    passkey: string
+  ) => { success: boolean; error?: string };
   register: (data: {
     fullName: string;
     email: string;
@@ -18,12 +23,12 @@ interface AuthContextType {
     city?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  switchDemoRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_USER_KEY = 'smart_city_auth_user';
+const LOCAL_STORAGE_ALL_USERS_KEY = 'smart_city_all_users';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Profile | null>(() => {
@@ -38,6 +43,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null; // Guest by default (Protected: Must login first!)
   });
 
+  const [allUsers, setAllUsers] = useState<Profile[]>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_ALL_USERS_KEY);
+    if (saved) {
+      try {
+        const parsed: Profile[] = JSON.parse(saved);
+        const combined = [...DEMO_PROFILES];
+        parsed.forEach((p) => {
+          if (!combined.some((c) => c.id === p.id || c.email.toLowerCase() === p.email.toLowerCase())) {
+            combined.push(p);
+          }
+        });
+        return combined;
+      } catch {
+        return DEMO_PROFILES;
+      }
+    }
+    return DEMO_PROFILES;
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -47,6 +71,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
     }
   }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_ALL_USERS_KEY, JSON.stringify(allUsers));
+  }, [allUsers]);
+
+  // Sync profiles from Supabase if connected
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      supabase
+        .from('profiles')
+        .select('*')
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            setAllUsers((prev) => {
+              const merged = [...prev];
+              (data as Profile[]).forEach((p) => {
+                const idx = merged.findIndex((m) => m.id === p.id || m.email.toLowerCase() === p.email.toLowerCase());
+                if (idx >= 0) {
+                  merged[idx] = p;
+                } else {
+                  merged.push(p);
+                }
+              });
+              return merged;
+            });
+          }
+        });
+    }
+  }, []);
 
   const login = async (email: string, password?: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
@@ -75,9 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // Demo fallback login matching emails
+      // Fallback matching registered users and demo profiles
       const cleanEmail = email.toLowerCase().trim();
-      const matched = DEMO_PROFILES.find(
+      const matched = allUsers.find(
         (p) => p.email.toLowerCase() === cleanEmail
       );
 
@@ -111,6 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         address: 'Citizen Residence, Jabalpur',
         created_at: new Date().toISOString(),
       };
+      setAllUsers((prev) => [newCitizen, ...prev]);
       setUser(newCitizen);
       setIsLoading(false);
       return { success: true };
@@ -118,6 +172,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
       return { success: false, error: err.message || 'Login failed' };
     }
+  };
+
+  // Secure Passkey verification for 1-click evaluation accounts
+  const quickLoginWithPasskey = (
+    targetRole: 'admin' | 'officer' | 'citizen',
+    passkey: string
+  ): { success: boolean; error?: string } => {
+    if (passkey.trim() !== '769757') {
+      return { success: false, error: 'Invalid Security Passkey! Access Denied.' };
+    }
+
+    let targetProfile: Profile;
+    if (targetRole === 'admin') {
+      targetProfile = DEMO_PROFILES[0]; // Abhijeet Shah, IAS
+    } else if (targetRole === 'officer') {
+      targetProfile = DEMO_PROFILES[1]; // Er. Vikram Malhotra
+    } else {
+      targetProfile = DEMO_PROFILES[4]; // Rahul Sharma (Citizen)
+    }
+
+    setUser(targetProfile);
+    return { success: true };
   };
 
   const register = async (data: {
@@ -178,11 +254,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      // Add to dynamic allUsers so Admin Citizen Directory sees this immediately!
+      setAllUsers((prev) => [profile, ...prev.filter((p) => p.email.toLowerCase() !== profile.email.toLowerCase())]);
       setUser(profile);
       setIsLoading(false);
       return { success: true };
     } catch (err: any) {
-      // Even in case of unexpected exception, guarantee smooth login experience
       const fallbackProfile: Profile = {
         id: `usr-citizen-${Date.now()}`,
         full_name: data.fullName,
@@ -193,6 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         address: data.address,
         created_at: new Date().toISOString(),
       };
+      setAllUsers((prev) => [fallbackProfile, ...prev.filter((p) => p.email.toLowerCase() !== fallbackProfile.email.toLowerCase())]);
       setUser(fallbackProfile);
       setIsLoading(false);
       return { success: true };
@@ -207,14 +285,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
   };
 
-  const switchDemoRole = (role: UserRole) => {
-    let target = DEMO_PROFILES.find((p) => p.role === role);
-    if (!target) {
-      target = DEMO_PROFILES[0];
-    }
-    setUser(target);
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -222,10 +292,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: user?.role || null,
         isAuthenticated: !!user,
         isLoading,
+        allUsers,
         login,
+        quickLoginWithPasskey,
         register,
         logout,
-        switchDemoRole,
       }}
     >
       {children}

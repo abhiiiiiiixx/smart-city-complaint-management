@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, Lock, Mail, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, KeyRound, X, AlertCircle } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 
@@ -9,11 +9,17 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
-  const { login, switchDemoRole } = useAuth();
+  const { login, quickLoginWithPasskey } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Passkey modal state for 1-click evaluation accounts
+  const [passkeyModalOpen, setPasskeyModalOpen] = useState(false);
+  const [targetQuickRole, setTargetQuickRole] = useState<'admin' | 'officer' | 'citizen' | null>(null);
+  const [passkeyInput, setPasskeyInput] = useState('');
+  const [passkeyError, setPasskeyError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +38,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleQuickDemo = (role: 'citizen' | 'officer' | 'admin') => {
-    switchDemoRole(role);
-    if (role === 'admin') onNavigate('admin-dashboard');
-    else if (role === 'officer') onNavigate('officer-dashboard');
-    else onNavigate('citizen-dashboard');
+  const handleOpenPasskey = (role: 'admin' | 'officer' | 'citizen') => {
+    setTargetQuickRole(role);
+    setPasskeyInput('');
+    setPasskeyError('');
+    setPasskeyModalOpen(true);
+  };
+
+  const handleVerifyPasskey = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetQuickRole) return;
+
+    if (passkeyInput.trim() !== '769757') {
+      setPasskeyError('Incorrect Passkey! Access Denied (Authorized passkey required).');
+      return;
+    }
+
+    const res = quickLoginWithPasskey(targetQuickRole, '769757');
+    if (res.success) {
+      setPasskeyModalOpen(false);
+      if (targetQuickRole === 'admin') onNavigate('admin-dashboard');
+      else if (targetQuickRole === 'officer') onNavigate('officer-dashboard');
+      else onNavigate('citizen-dashboard');
+    } else {
+      setPasskeyError(res.error || 'Access Denied');
+    }
+  };
+
+  const getRoleDisplayName = (r: 'admin' | 'officer' | 'citizen' | null) => {
+    if (r === 'admin') return 'Abhijeet Shah, IAS (Commissioner)';
+    if (r === 'officer') return 'Er. Vikram Malhotra (Roads Officer)';
+    if (r === 'citizen') return 'Rahul Sharma (Citizen)';
+    return '';
   };
 
   return (
@@ -107,17 +140,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             </Button>
           </form>
 
-          {/* Quick Demo Logins Section */}
+          {/* Quick Evaluation Accounts Section (Passkey Protected) */}
           <div className="pt-4 border-t border-slate-100">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block text-center mb-2">
-              Instant 1-Click Evaluation Accounts
-            </span>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Instant Evaluation Accounts
+              </span>
+              <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200 flex items-center gap-1">
+                <KeyRound className="w-3 h-3 text-teal-600" />
+                Passkey Protected
+              </span>
+            </div>
 
             <div className="space-y-2">
               <button
                 type="button"
-                onClick={() => handleQuickDemo('admin')}
-                className="w-full p-2.5 rounded-xl border border-navy-200 bg-navy-50/70 hover:bg-navy-100 text-left transition-colors flex items-center justify-between group"
+                onClick={() => handleOpenPasskey('admin')}
+                className="w-full p-2.5 rounded-xl border border-navy-200 bg-navy-50/70 hover:bg-navy-100 text-left transition-colors flex items-center justify-between group cursor-pointer"
               >
                 <div>
                   <div className="text-xs font-bold text-navy-950">
@@ -132,8 +171,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
               <button
                 type="button"
-                onClick={() => handleQuickDemo('officer')}
-                className="w-full p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-left transition-colors flex items-center justify-between group"
+                onClick={() => handleOpenPasskey('officer')}
+                className="w-full p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-left transition-colors flex items-center justify-between group cursor-pointer"
               >
                 <div>
                   <div className="text-xs font-bold text-blue-900">
@@ -148,8 +187,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
               <button
                 type="button"
-                onClick={() => handleQuickDemo('citizen')}
-                className="w-full p-2.5 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100 text-left transition-colors flex items-center justify-between group"
+                onClick={() => handleOpenPasskey('citizen')}
+                className="w-full p-2.5 rounded-xl border border-teal-200 bg-teal-50/70 hover:bg-teal-100 text-left transition-colors flex items-center justify-between group cursor-pointer"
               >
                 <div>
                   <div className="text-xs font-bold text-teal-900">
@@ -175,6 +214,82 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Security Passkey Verification Modal */}
+      {passkeyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-sm w-full p-6 space-y-4 relative animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setPasskeyModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-navy-950">Security Passkey</h3>
+                <p className="text-[11px] text-slate-500">Authorized evaluation access</p>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 font-medium">
+              Target Account: <strong className="text-navy-900">{getRoleDisplayName(targetQuickRole)}</strong>
+            </div>
+
+            {passkeyError && (
+              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{passkeyError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyPasskey} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Enter 6-Digit Passkey *
+                </label>
+                <input
+                  type="password"
+                  autoFocus
+                  required
+                  maxLength={6}
+                  placeholder="••••••"
+                  value={passkeyInput}
+                  onChange={(e) => {
+                    setPasskeyInput(e.target.value.replace(/\D/g, ''));
+                    setPasskeyError('');
+                  }}
+                  className="w-full px-3 py-2.5 text-center text-lg tracking-[0.4em] font-mono font-bold border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPasskeyModalOpen(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="teal"
+                  size="sm"
+                  className="flex-1 font-bold"
+                >
+                  Verify & Access
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

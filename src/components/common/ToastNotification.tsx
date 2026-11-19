@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComplaints } from '../../context/ComplaintContext';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, CheckCircle2, AlertCircle, Wrench, ShieldAlert, X, ArrowRight } from 'lucide-react';
+import { Bell, CheckCircle2, ShieldAlert, Wrench, X, ArrowRight } from 'lucide-react';
 import { Notification } from '../../types/database';
 
 interface ToastNotificationProps {
@@ -14,10 +14,19 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ onTrackSea
   const [activeToast, setActiveToast] = useState<Notification | null>(null);
   const [lastNotifId, setLastNotifId] = useState<string | null>(null);
 
+  // Instantly dismiss any lingering toast when user switches, logs in, or logs out
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    setActiveToast(null);
+    setLastNotifId(null);
+  }, [user?.id, isAuthenticated]);
 
-    // Find the latest notification relevant to the current user
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setActiveToast(null);
+      return;
+    }
+
+    // Filter notifications strictly matching the current logged-in user
     const userNotifs = notifications.filter(
       (n) => n.user_id === user.id || (user.role === 'admin' && n.user_id === 'usr-admin-01')
     );
@@ -25,8 +34,12 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ onTrackSea
     if (userNotifs.length > 0) {
       const latest = userNotifs[0];
 
-      // If this is a newly arrived unread notification
-      if (!latest.is_read && latest.id !== lastNotifId) {
+      // Only show live pop-up toast if notification is unread, new, AND created very recently (< 30 seconds ago)
+      // Historical or previous session notifications will only show in bell dropdown, preventing unwanted popups!
+      const notifTime = new Date(latest.created_at).getTime();
+      const isVeryRecent = !isNaN(notifTime) && Date.now() - notifTime < 30000;
+
+      if (!latest.is_read && latest.id !== lastNotifId && isVeryRecent) {
         setLastNotifId(latest.id);
         setActiveToast(latest);
 
@@ -38,7 +51,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ onTrackSea
         return () => clearTimeout(timer);
       }
     }
-  }, [notifications, isAuthenticated, user, lastNotifId]);
+  }, [notifications, isAuthenticated, user?.id, lastNotifId]);
 
   if (!activeToast) return null;
 
@@ -69,7 +82,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ onTrackSea
             markNotificationRead(activeToast.id);
             setActiveToast(null);
           }}
-          className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+          className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
           aria-label="Dismiss toast"
         >
           <X className="w-4 h-4" />
@@ -105,7 +118,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ onTrackSea
                 markNotificationRead(activeToast.id);
                 setActiveToast(null);
               }}
-              className="inline-flex items-center gap-1 font-bold text-teal-700 hover:text-teal-900 transition-colors"
+              className="inline-flex items-center gap-1 font-bold text-teal-700 hover:text-teal-900 transition-colors cursor-pointer"
             >
               <span>Track Live Status</span>
               <ArrowRight className="w-3.5 h-3.5" />

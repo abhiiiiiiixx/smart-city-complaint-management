@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useComplaints } from '../../context/ComplaintContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -40,11 +40,30 @@ export const MyComplaintsPage: React.FC<MyComplaintsPageProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingComplaint, setViewingComplaint] = useState<Complaint | null>(() => {
-    if (selectedComplaintId) {
-      return complaints.find((c) => c.id === selectedComplaintId) || null;
+    if (selectedComplaintId && user) {
+      const found = complaints.find((c) => c.id === selectedComplaintId);
+      if (
+        found &&
+        (found.citizen_id === user.id ||
+          (user.email === 'citizen@smartcity.gov.in' && found.citizen_id === 'usr-citizen-01'))
+      ) {
+        return found;
+      }
     }
     return null;
   });
+
+  // Strictly enforce citizen isolation: Never display another citizen's complaint modal
+  useEffect(() => {
+    if (viewingComplaint && user) {
+      const isOwner =
+        viewingComplaint.citizen_id === user.id ||
+        (user.email === 'citizen@smartcity.gov.in' && viewingComplaint.citizen_id === 'usr-citizen-01');
+      if (!isOwner) {
+        setViewingComplaint(null);
+      }
+    }
+  }, [user?.id, viewingComplaint]);
 
   // Modal states for Feedback / Reopen
   const [showRatingModal, setShowRatingModal] = useState(false);

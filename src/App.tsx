@@ -38,7 +38,7 @@ import { ManageCategoriesPage } from './pages/admin/ManageCategoriesPage';
 import { ReportsAnalyticsPage } from './pages/admin/ReportsAnalyticsPage';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, user } = useAuth();
   const [currentTab, setCurrentTab] = useState<string>('landing');
   const [trackSearchId, setTrackSearchId] = useState<string>('SC-2026-0001');
   const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
@@ -57,7 +57,12 @@ const AppContent: React.FC = () => {
     'analytics-reports',
   ];
 
-  // Route Guard Effect: If guest tries to access protected tab, redirect to login
+  // Reset complaint selection on user change / logout to guarantee user isolation
+  useEffect(() => {
+    setSelectedComplaintId(null);
+  }, [user?.id]);
+
+  // Strict Route Guard Effect: If guest or unauthorized role tries to access restricted tab, bounce immediately
   useEffect(() => {
     const isProtected =
       citizenTabs.includes(currentTab) ||
@@ -66,8 +71,20 @@ const AppContent: React.FC = () => {
 
     if (isProtected && !isAuthenticated) {
       setCurrentTab('login');
+      return;
     }
-  }, [currentTab, isAuthenticated]);
+
+    if (isAuthenticated) {
+      if (adminTabs.includes(currentTab) && role !== 'admin') {
+        setCurrentTab(role === 'officer' ? 'officer-dashboard' : 'citizen-dashboard');
+        return;
+      }
+      if (officerTabs.includes(currentTab) && role !== 'officer' && role !== 'admin') {
+        setCurrentTab('citizen-dashboard');
+        return;
+      }
+    }
+  }, [currentTab, isAuthenticated, role]);
 
   const handleNavigate = (tab: string) => {
     // If not authenticated, protect internal workspace routes
@@ -169,15 +186,15 @@ const AppContent: React.FC = () => {
           {currentTab === 'login' && <LoginPage onNavigate={handleNavigate} />}
           {currentTab === 'register' && <RegisterPage onNavigate={handleNavigate} />}
 
-          {/* Citizen Routes (Protected) */}
-          {isAuthenticated && currentTab === 'citizen-dashboard' && (
+          {/* Citizen Routes (Strictly for Citizen role) */}
+          {isAuthenticated && role === 'citizen' && currentTab === 'citizen-dashboard' && (
             <CitizenDashboard
               onNavigate={handleNavigate}
               onSelectComplaint={handleComplaintSelected}
             />
           )}
 
-          {isAuthenticated && currentTab === 'submit-complaint' && (
+          {isAuthenticated && role === 'citizen' && currentTab === 'submit-complaint' && (
             <SubmitComplaintPage
               onNavigate={handleNavigate}
               onComplaintSubmitted={(id) => {
@@ -186,37 +203,37 @@ const AppContent: React.FC = () => {
             />
           )}
 
-          {isAuthenticated && currentTab === 'my-complaints' && (
+          {isAuthenticated && role === 'citizen' && currentTab === 'my-complaints' && (
             <MyComplaintsPage
               onNavigate={handleNavigate}
               selectedComplaintId={selectedComplaintId}
             />
           )}
 
-          {/* Officer Routes (Protected) */}
-          {isAuthenticated && currentTab === 'officer-dashboard' && (
+          {/* Officer Routes (Strictly for Officer role) */}
+          {isAuthenticated && (role === 'officer' || role === 'admin') && currentTab === 'officer-dashboard' && (
             <OfficerDashboard onNavigate={handleNavigate} />
           )}
 
-          {isAuthenticated && currentTab === 'assigned-complaints' && (
+          {isAuthenticated && (role === 'officer' || role === 'admin') && currentTab === 'assigned-complaints' && (
             <AssignedComplaintsPage />
           )}
 
-          {isAuthenticated && currentTab === 'officer-performance' && (
+          {isAuthenticated && (role === 'officer' || role === 'admin') && currentTab === 'officer-performance' && (
             <OfficerPerformancePage />
           )}
 
-          {/* Admin Routes (Protected) */}
-          {isAuthenticated && currentTab === 'admin-dashboard' && (
+          {/* Admin Routes (STRICTLY RESTRICTED TO ADMIN ROLE ONLY) */}
+          {isAuthenticated && role === 'admin' && currentTab === 'admin-dashboard' && (
             <AdminDashboard onNavigate={handleNavigate} />
           )}
 
-          {isAuthenticated && currentTab === 'all-complaints' && <AllComplaintsPage />}
-          {isAuthenticated && currentTab === 'manage-departments' && <ManageDepartmentsPage />}
-          {isAuthenticated && currentTab === 'manage-officers' && <ManageOfficersPage />}
-          {isAuthenticated && currentTab === 'manage-citizens' && <ManageCitizensPage />}
-          {isAuthenticated && currentTab === 'manage-categories' && <ManageCategoriesPage />}
-          {isAuthenticated && currentTab === 'analytics-reports' && <ReportsAnalyticsPage />}
+          {isAuthenticated && role === 'admin' && currentTab === 'all-complaints' && <AllComplaintsPage />}
+          {isAuthenticated && role === 'admin' && currentTab === 'manage-departments' && <ManageDepartmentsPage />}
+          {isAuthenticated && role === 'admin' && currentTab === 'manage-officers' && <ManageOfficersPage />}
+          {isAuthenticated && role === 'admin' && currentTab === 'manage-citizens' && <ManageCitizensPage />}
+          {isAuthenticated && role === 'admin' && currentTab === 'manage-categories' && <ManageCategoriesPage />}
+          {isAuthenticated && role === 'admin' && currentTab === 'analytics-reports' && <ReportsAnalyticsPage />}
         </main>
       </div>
 
