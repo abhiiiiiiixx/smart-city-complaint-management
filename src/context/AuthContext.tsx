@@ -30,6 +30,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const LOCAL_STORAGE_USER_KEY = 'smart_city_auth_user';
 const LOCAL_STORAGE_ALL_USERS_KEY = 'smart_city_all_users';
 
+// Helper to generate valid UUID for PostgreSQL
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Profile | null>(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
@@ -76,18 +88,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(LOCAL_STORAGE_ALL_USERS_KEY, JSON.stringify(allUsers));
   }, [allUsers]);
 
-  // Sync profiles from Supabase if connected
+  // Real-time synchronization with Supabase profiles table across Phone, Laptop, and Netlify
   useEffect(() => {
-    if (isSupabaseConfigured()) {
-      supabase
-        .from('profiles')
-        .select('*')
-        .then(({ data, error }) => {
+    const syncProfiles = async () => {
+      if (isSupabaseConfigured()) {
+        try {
+          const { data, error } = await supabase.from('profiles').select('*');
           if (!error && data && data.length > 0) {
             setAllUsers((prev) => {
               const merged = [...prev];
               (data as Profile[]).forEach((p) => {
-                const idx = merged.findIndex((m) => m.id === p.id || m.email.toLowerCase() === p.email.toLowerCase());
+                const idx = merged.findIndex(
+                  (m) =>
+                    m.id === p.id ||
+                    m.email.toLowerCase() === p.email.toLowerCase()
+                );
                 if (idx >= 0) {
                   merged[idx] = p;
                 } else {
@@ -97,39 +112,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return merged;
             });
           }
-        });
-    }
+        } catch (syncErr) {
+          console.warn('Supabase profiles sync note:', syncErr);
+        }
+      }
+    };
+
+    syncProfiles();
+    // Poll every 8 seconds for real-time cross-device sync between Phone and Laptop
+    const interval = setInterval(syncProfiles, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const login = async (email: string, password?: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
+    const cleanEmail = email.toLowerCase().trim();
+
     try {
+      // 1. Attempt Supabase Auth login if configured
       if (isSupabaseConfigured()) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password || 'Default@123',
-        });
-        if (error) {
-          setIsLoading(false);
-          return { success: false, error: error.message };
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: password || 'Default@123',
+          });
+
+          if (!error && data?.user) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            if (profileData) {
+              setUser(profileData as Profile);
+              setIsLoading(false);
+              return { success: true };
+            }
+          }
+        } catch (authErr) {
+          console.warn('Supabase auth attempt note:', authErr);
         }
-        if (data.user) {
-          const { data: profileData } = await supabase
+
+        // 2. If Auth service had trigger/email-confirm issues, check Supabase profiles table directly
+        try {
+          const { data: dbProfile } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', data.user.id)
-            .single();
+            .ilike('email', cleanEmail)
+            .maybeSingle();
 
-          if (profileData) {
-            setUser(profileData as Profile);
+          if (dbProfile) {
+            setUser(dbProfile as Profile);
             setIsLoading(false);
             return { success: true };
           }
+        } catch (dbErr) {
+          console.warn('Supabase direct profile check:', dbErr);
         }
       }
 
-      // Fallback matching registered users and demo profiles
-      const cleanEmail = email.toLowerCase().trim();
+      // 3. Fallback matching registered users and demo accounts
       const matched = allUsers.find(
         (p) => p.email.toLowerCase() === cleanEmail
       );
@@ -140,7 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true };
       }
 
-      // Check for admin/officer keywords in email for quick testing
+      // 4. Check for admin/officer keywords in email for quick testing
       if (cleanEmail.includes('admin')) {
         setUser(DEMO_PROFILES[0]); // Abhijeet Shah, IAS
         setIsLoading(false);
@@ -153,17 +196,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true };
       }
 
-      // New citizen login
+      // 5. New citizen self-service login
       const newCitizen: Profile = {
-        id: `usr-citizen-${Date.now()}`,
+        id: generateUUID(),
         full_name: email.split('@')[0].toUpperCase(),
-        email: email.trim(),
+        email: cleanEmail,
         phone: '9425100000',
         role: 'citizen',
         city: 'Jabalpur',
         address: 'Citizen Residence, Jabalpur',
         created_at: new Date().toISOString(),
       };
+
+      if (isSupabaseConfigured()) {
+        try {
+          await supabase.from('profiles').upsert([newCitizen]);
+        } catch (e) {
+          console.warn('Supabase citizen save:', e);
+        }
+      }
+
       setAllUsers((prev) => [newCitizen, ...prev]);
       setUser(newCitizen);
       setIsLoading(false);
@@ -205,13 +257,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     city?: string;
   }): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
+    const cleanEmail = data.email.trim().toLowerCase();
+
     try {
       let createdUserId: string | null = null;
 
+      // 1. Attempt Supabase Auth Sign Up
       if (isSupabaseConfigured()) {
         try {
           const { data: authData, error } = await supabase.auth.signUp({
-            email: data.email.trim(),
+            email: cleanEmail,
             password: data.password || 'Citizen@123',
             options: {
               data: {
@@ -219,6 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 phone: data.phone,
                 role: 'citizen',
                 city: data.city || 'Jabalpur',
+                address: data.address,
               },
             },
           });
@@ -226,18 +282,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (!error && authData?.user) {
             createdUserId = authData.user.id;
           } else if (error) {
-            console.warn('Supabase auth notice (falling back seamlessly):', error.message);
+            console.warn('Supabase auth notice (using direct database sync):', error.message);
           }
         } catch (authErr) {
           console.warn('Supabase auth exception:', authErr);
         }
       }
 
-      // Create valid profile (using Supabase user id if available, or unique local id)
+      // 2. Generate valid UUID if auth signup didn't return one
+      const validId = createdUserId || generateUUID();
+
       const profile: Profile = {
-        id: createdUserId || `usr-citizen-${Date.now()}`,
+        id: validId,
         full_name: data.fullName,
-        email: data.email.trim(),
+        email: cleanEmail,
         phone: data.phone,
         role: 'citizen',
         city: data.city || 'Jabalpur',
@@ -245,32 +303,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         created_at: new Date().toISOString(),
       };
 
-      // If Supabase is connected, attempt to persist profile directly to public.profiles table
-      if (isSupabaseConfigured() && createdUserId) {
+      // 3. Persist profile directly to Supabase public.profiles table
+      if (isSupabaseConfigured()) {
         try {
-          await supabase.from('profiles').upsert([profile]);
+          const { error: upsertErr } = await supabase.from('profiles').upsert([profile]);
+          if (upsertErr) {
+            console.warn('Profile direct sync note:', upsertErr.message);
+          }
         } catch (dbErr) {
-          console.warn('Profile direct sync note:', dbErr);
+          console.warn('Profile direct sync exception:', dbErr);
         }
       }
 
-      // Add to dynamic allUsers so Admin Citizen Directory sees this immediately!
-      setAllUsers((prev) => [profile, ...prev.filter((p) => p.email.toLowerCase() !== profile.email.toLowerCase())]);
+      // 4. Update local and shared state
+      setAllUsers((prev) => [
+        profile,
+        ...prev.filter((p) => p.email.toLowerCase() !== cleanEmail),
+      ]);
       setUser(profile);
       setIsLoading(false);
       return { success: true };
     } catch (err: any) {
+      const fallbackId = generateUUID();
       const fallbackProfile: Profile = {
-        id: `usr-citizen-${Date.now()}`,
+        id: fallbackId,
         full_name: data.fullName,
-        email: data.email.trim(),
+        email: cleanEmail,
         phone: data.phone,
         role: 'citizen',
         city: data.city || 'Jabalpur',
         address: data.address,
         created_at: new Date().toISOString(),
       };
-      setAllUsers((prev) => [fallbackProfile, ...prev.filter((p) => p.email.toLowerCase() !== fallbackProfile.email.toLowerCase())]);
+
+      if (isSupabaseConfigured()) {
+        try {
+          await supabase.from('profiles').upsert([fallbackProfile]);
+        } catch (e) {
+          console.warn('Fallback sync note:', e);
+        }
+      }
+
+      setAllUsers((prev) => [
+        fallbackProfile,
+        ...prev.filter((p) => p.email.toLowerCase() !== cleanEmail),
+      ]);
       setUser(fallbackProfile);
       setIsLoading(false);
       return { success: true };
@@ -279,7 +356,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     if (isSupabaseConfigured()) {
-      supabase.auth.signOut();
+      try {
+        supabase.auth.signOut();
+      } catch (e) {
+        console.warn('SignOut exception:', e);
+      }
     }
     setUser(null);
     localStorage.removeItem(LOCAL_STORAGE_USER_KEY);

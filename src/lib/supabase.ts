@@ -1,7 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Default to live project credentials so Netlify, mobile devices, and local builds all connect seamlessly
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://rfflalqpjuoypwgaaxqp.supabase.co';
+
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'sb_publishable_SP5F8RIrtT06V4BYhokwEA_deJhdJYO';
 
 export const isSupabaseConfigured = (): boolean => {
   return (
@@ -14,7 +20,5 @@ export const isSupabaseConfigured = (): boolean => {
   );
 };
 
-// Create client if configured, otherwise create a mock/safe client
-export const supabase: SupabaseClient = isSupabaseConfigured()
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : (createClient('https://mock-smartcity.supabase.co', 'mock-anon-key-dummy') as SupabaseClient);
+// Create live Supabase client
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);

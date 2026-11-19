@@ -186,7 +186,16 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const department = departments.find((d) => d.id === c.assigned_department_id);
     const officer = officers.find((o) => o.id === c.assigned_officer_id);
     const feedback = feedbackList.find((f) => f.complaint_id === c.id);
-    const citizen = DEMO_PROFILES.find((p) => p.id === c.citizen_id);
+    let citizen = DEMO_PROFILES.find((p) => p.id === c.citizen_id);
+    if (!citizen) {
+      try {
+        const savedUsers = localStorage.getItem('smart_city_all_users');
+        if (savedUsers) {
+          const parsed = JSON.parse(savedUsers);
+          citizen = parsed.find((p: any) => p.id === c.citizen_id);
+        }
+      } catch (e) {}
+    }
 
     return {
       ...c,
