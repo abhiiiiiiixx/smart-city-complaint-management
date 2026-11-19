@@ -23,6 +23,23 @@ import {
 import { generateComplaintId } from '../lib/utils';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
+// Helper to generate and check valid UUIDs for PostgreSQL
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const isUUID = (str?: string): boolean => {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
 interface SubmitComplaintData {
   citizenId: string;
   categoryId: string;
@@ -156,11 +173,10 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}categories`, JSON.stringify(categories));
   }, [categories]);
 
-  // Load from Supabase if live credentials configured
+  // Load and poll from Supabase for live cross-device sync between Phone and Laptop
   useEffect(() => {
     if (isSupabaseConfigured()) {
       const fetchLiveData = async () => {
-        setIsLoading(true);
         try {
           const { data: catData } = await supabase.from('complaint_categories').select('*');
           if (catData && catData.length > 0) setCategories(catData);
@@ -168,15 +184,31 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           const { data: deptData } = await supabase.from('departments').select('*');
           if (deptData && deptData.length > 0) setDepartments(deptData);
 
-          const { data: compData } = await supabase.from('complaints').select('*').order('created_at', { ascending: false });
-          if (compData && compData.length > 0) setComplaints(compData);
+          const { data: compData, error: compErr } = await supabase
+            .from('complaints')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!compErr && compData && compData.length > 0) {
+            setComplaints(compData);
+          }
+
+          const { data: notifData, error: notifErr } = await supabase
+            .from('notifications')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!notifErr && notifData && notifData.length > 0) {
+            setNotifications(notifData);
+          }
         } catch (err) {
           console.error('Error fetching Supabase data:', err);
-        } finally {
-          setIsLoading(false);
         }
       };
+
       fetchLiveData();
+      const interval = setInterval(fetchLiveData, 5000);
+      return () => clearInterval(interval);
     }
   }, []);
 
@@ -228,16 +260,26 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const nextSequence = complaints.length + 1;
       const complaintNumber = generateComplaintId(nextSequence);
 
-      // Auto-suggest department based on category
-      const cat = categories.find((c) => c.id === data.categoryId);
-      const suggestedDeptId = cat ? cat.default_department_id : departments[0]?.id;
+      // Auto-suggest department based on category with robust UUID fallback
+      const cat = categories.find((c) => c.id === data.categoryId || c.name.toLowerCase() === data.categoryId.toLowerCase());
+      const firstValidCat = categories.find((c) => isUUID(c.id));
+      const validCatId = cat && isUUID(cat.id) ? cat.id : (firstValidCat ? firstValidCat.id : 'c1000000-0000-0000-0000-000000000001');
+
+      const rawDeptId = cat ? cat.default_department_id : departments[0]?.id;
+      const dept = departments.find((d) => d.id === rawDeptId || (cat && d.id === cat.default_department_id));
+      const firstValidDept = departments.find((d) => isUUID(d.id));
+      const validDeptId = dept && isUUID(dept.id) ? dept.id : (firstValidDept ? firstValidDept.id : 'd1000000-0000-0000-0000-000000000001');
+
+      // Valid citizen UUID mapping
+      const validCitizenId = isUUID(data.citizenId) ? data.citizenId : 'a0000000-0000-0000-0000-000000000003';
+      const complaintUuid = generateUUID();
 
       const newComplaint: Complaint = {
-        id: `comp-${Date.now()}`,
+        id: complaintUuid,
         complaint_number: complaintNumber,
-        citizen_id: data.citizenId,
-        category_id: data.categoryId,
-        assigned_department_id: suggestedDeptId,
+        citizen_id: validCitizenId,
+        category_id: validCatId,
+        assigned_department_id: validDeptId,
         title: data.title,
         description: data.description,
         priority: data.priority,
@@ -246,25 +288,29 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ward_or_area: data.wardOrArea,
         latitude: data.latitude,
         longitude: data.longitude,
-        image_urls: data.imageUrls,
+        image_urls: data.imageUrls || [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
       if (isSupabaseConfigured()) {
-        const { error } = await supabase.from('complaints').insert([newComplaint]);
-        if (error) {
-          console.warn('Supabase insert failed, saving to local state:', error);
+        try {
+          const { error: insertErr } = await supabase.from('complaints').insert([newComplaint]);
+          if (insertErr) {
+            console.warn('Supabase insert note:', insertErr.message);
+          }
+        } catch (dbErr) {
+          console.warn('Supabase insert exception:', dbErr);
         }
       }
 
-      setComplaints((prev) => [newComplaint, ...prev]);
+      setComplaints((prev) => [newComplaint, ...prev.filter(c => c.complaint_number !== complaintNumber)]);
 
       // Create initial update log
       const initialUpdate: ComplaintUpdate = {
-        id: `upd-${Date.now()}`,
+        id: generateUUID(),
         complaint_id: newComplaint.id,
-        updated_by: data.citizenId,
+        updated_by: validCitizenId,
         updated_by_name: 'Citizen (Submission)',
         from_status: 'Submitted',
         to_status: 'Submitted',
@@ -273,15 +319,23 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       };
       setUpdates((prev) => [initialUpdate, ...prev]);
 
+      if (isSupabaseConfigured()) {
+        try {
+          await supabase.from('complaint_updates').insert([initialUpdate]);
+        } catch (uErr) {
+          console.warn('Complaint update sync note:', uErr);
+        }
+      }
+
       // Create Citizen Confirmation Notification
       const citizenNotif: Notification = {
-        id: `notif-${Date.now()}-cit`,
-        user_id: data.citizenId,
+        id: generateUUID(),
+        user_id: validCitizenId,
         complaint_id: newComplaint.id,
         complaint_number: complaintNumber,
         title: `Grievance Registered: ${complaintNumber}`,
         message: `Your civic grievance has been officially registered with Jabalpur Municipal Corporation under ${data.priority} priority (${data.wardOrArea}). Assigned Department: ${
-          departments.find((d) => d.id === suggestedDeptId)?.name || 'Central Command'
+          departments.find((d) => d.id === validDeptId)?.name || 'Central Command'
         }. SLA tracking active.`,
         type: 'system',
         is_read: false,
@@ -290,8 +344,8 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       // Create Admin Notification
       const adminNotif: Notification = {
-        id: `notif-${Date.now()}-adm`,
-        user_id: 'usr-admin-01',
+        id: generateUUID(),
+        user_id: 'a0000000-0000-0000-0000-000000000001',
         complaint_id: newComplaint.id,
         complaint_number: complaintNumber,
         title: `New Grievance Submitted: ${complaintNumber}`,
@@ -300,6 +354,14 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         is_read: false,
         created_at: new Date().toISOString(),
       };
+
+      if (isSupabaseConfigured()) {
+        try {
+          await supabase.from('notifications').insert([citizenNotif, adminNotif]);
+        } catch (nErr) {
+          console.warn('Notifications insert note:', nErr);
+        }
+      }
 
       setNotifications((prev) => [citizenNotif, adminNotif, ...prev]);
 

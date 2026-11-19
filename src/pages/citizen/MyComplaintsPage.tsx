@@ -77,7 +77,7 @@ export const MyComplaintsPage: React.FC<MyComplaintsPageProps> = ({
   const myComplaints = complaints.filter(
     (c) =>
       c.citizen_id === user?.id ||
-      (user?.email === 'citizen@smartcity.gov.in' && c.citizen_id === 'usr-citizen-01')
+      (user?.email === 'citizen@smartcity.gov.in' && (c.citizen_id === 'usr-citizen-01' || c.citizen_id === 'a0000000-0000-0000-0000-000000000003'))
   );
 
   const filteredComplaints = myComplaints.filter((comp) => {

@@ -56,6 +56,13 @@ export const SubmitComplaintPage: React.FC<SubmitComplaintPageProps> = ({
     (d) => d.id === currentCategory?.default_department_id
   );
 
+  // Auto-select valid loaded category once categories are fetched from Supabase
+  useEffect(() => {
+    if (categories.length > 0 && (!categoryId || !categories.some((c) => c.id === categoryId))) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories, categoryId]);
+
   // Live priority analysis using smart keyword engine
   useEffect(() => {
     if (isPriorityAutoSuggested) {
