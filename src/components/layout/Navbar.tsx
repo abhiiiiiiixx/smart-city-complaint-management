@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Menu,
   FileSearch,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { formatTimeAgo } from '../../lib/utils';
@@ -190,6 +191,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Zonal Helpline
             </button>
+
+            {/* Direct 1-Click Dashboard button when logged in */}
+            {isAuthenticated && (
+              <button
+                onClick={() =>
+                  onNavigate(
+                    role === 'admin'
+                      ? 'admin-dashboard'
+                      : role === 'officer'
+                      ? 'officer-dashboard'
+                      : 'citizen-dashboard'
+                  )
+                }
+                className={`ml-1 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+                  currentTab.includes('dashboard')
+                    ? 'bg-teal-700 text-white'
+                    : 'bg-navy-950 text-white hover:bg-navy-900'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-teal-300" />
+                <span>My Dashboard</span>
+              </button>
+            )}
           </nav>
         </div>
 

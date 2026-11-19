@@ -62,18 +62,32 @@ const AppContent: React.FC = () => {
     setSelectedComplaintId(null);
   }, [user?.id]);
 
-  // Strict Route Guard Effect: If guest or unauthorized role tries to access restricted tab, bounce immediately
+  // Comprehensive Route Guard & Immediate Login Redirection
   useEffect(() => {
     const isProtected =
       citizenTabs.includes(currentTab) ||
       officerTabs.includes(currentTab) ||
       adminTabs.includes(currentTab);
 
+    // 1. If guest tries to access protected tab, bounce to login
     if (isProtected && !isAuthenticated) {
       setCurrentTab('login');
       return;
     }
 
+    // 2. If user is authenticated and on login or register page, AUTOMATICALLY redirect to their dashboard!
+    if (isAuthenticated && (currentTab === 'login' || currentTab === 'register')) {
+      if (role === 'admin') {
+        setCurrentTab('admin-dashboard');
+      } else if (role === 'officer') {
+        setCurrentTab('officer-dashboard');
+      } else {
+        setCurrentTab('citizen-dashboard');
+      }
+      return;
+    }
+
+    // 3. Strict role-based protection for authenticated users
     if (isAuthenticated) {
       if (adminTabs.includes(currentTab) && role !== 'admin') {
         setCurrentTab(role === 'officer' ? 'officer-dashboard' : 'citizen-dashboard');
@@ -87,30 +101,6 @@ const AppContent: React.FC = () => {
   }, [currentTab, isAuthenticated, role]);
 
   const handleNavigate = (tab: string) => {
-    // If not authenticated, protect internal workspace routes
-    const isProtected =
-      citizenTabs.includes(tab) || officerTabs.includes(tab) || adminTabs.includes(tab);
-
-    if (isProtected && !isAuthenticated) {
-      setCurrentTab('login');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    // Role-based authorization
-    if (isAuthenticated) {
-      if (adminTabs.includes(tab) && role !== 'admin') {
-        setCurrentTab(role === 'officer' ? 'officer-dashboard' : 'citizen-dashboard');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-      if (officerTabs.includes(tab) && role !== 'officer' && role !== 'admin') {
-        setCurrentTab('citizen-dashboard');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-    }
-
     setCurrentTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -182,9 +172,9 @@ const AppContent: React.FC = () => {
             />
           )}
 
-          {/* Auth Routes */}
-          {currentTab === 'login' && <LoginPage onNavigate={handleNavigate} />}
-          {currentTab === 'register' && <RegisterPage onNavigate={handleNavigate} />}
+          {/* Auth Routes: Only shown if unauthenticated */}
+          {!isAuthenticated && currentTab === 'login' && <LoginPage onNavigate={handleNavigate} />}
+          {!isAuthenticated && currentTab === 'register' && <RegisterPage onNavigate={handleNavigate} />}
 
           {/* Citizen Routes (Strictly for Citizen role) */}
           {isAuthenticated && role === 'citizen' && currentTab === 'citizen-dashboard' && (

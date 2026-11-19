@@ -13,6 +13,7 @@ import {
   Building2,
   Star,
   Sparkles,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -79,21 +80,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Quick Action CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button
-              variant="teal"
-              size="lg"
-              onClick={() => {
-                if (isAuthenticated) {
-                  onNavigate(role === 'citizen' ? 'submit-complaint' : 'citizen-dashboard');
-                } else {
-                  onNavigate('submit-complaint');
-                }
-              }}
-              className="w-full sm:w-auto shadow-lg shadow-teal-900/30 font-bold"
-            >
-              <PlusCircle className="w-5 h-5 mr-2" />
-              File a Civic Grievance
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                variant="teal"
+                size="lg"
+                onClick={() => {
+                  if (role === 'admin') onNavigate('admin-dashboard');
+                  else if (role === 'officer') onNavigate('officer-dashboard');
+                  else onNavigate('citizen-dashboard');
+                }}
+                className="w-full sm:w-auto shadow-xl shadow-teal-950/40 font-extrabold text-sm"
+              >
+                <LayoutDashboard className="w-5 h-5 mr-2" />
+                Open {role === 'admin' ? 'Admin Command' : role === 'officer' ? 'Officer' : 'Citizen'} Dashboard &rarr;
+              </Button>
+            ) : (
+              <Button
+                variant="teal"
+                size="lg"
+                onClick={() => onNavigate('submit-complaint')}
+                className="w-full sm:w-auto shadow-lg shadow-teal-900/30 font-bold"
+              >
+                <PlusCircle className="w-5 h-5 mr-2" />
+                File a Civic Grievance
+              </Button>
+            )}
 
             <Button
               variant="outline"
