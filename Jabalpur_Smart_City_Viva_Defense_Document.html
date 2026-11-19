@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Jabalpur Smart City - Project Viva Defense & Technical Dossier</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 15mm 20mm 15mm;
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 9pt;
+      color: #64748b;
+      font-family: 'Inter', sans-serif;
+    }
+    @bottom-left {
+      content: "Jabalpur Smart City Limited (JSCL) | Viva Defense Dossier";
+      font-size: 8pt;
+      color: #64748b;
+      font-family: 'Inter', sans-serif;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  /* Cover Page */
+  .cover-page {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    text-align: center;
+    padding: 40px 20px;
+    border: 3px double #0f766e;
+    margin: 10px;
+  }
+
+  .cover-badge {
+    display: inline-block;
+    background: #042f2e;
+    color: #2dd4bf;
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+  }
+
+  .cover-title {
+    font-size: 26pt;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 15px 0;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .cover-subtitle {
+    font-size: 14pt;
+    color: #0f766e;
+    font-weight: 600;
+    margin: 0 0 35px 0;
+    max-width: 650px;
+  }
+
+  .cover-divider {
+    width: 120px;
+    height: 4px;
+    background: #0f766e;
+    margin: 0 auto 35px auto;
+    border-radius: 2px;
+  }
+
+  .cover-meta {
+    width: 100%;
+    max-width: 600px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin: 25px auto;
+    text-align: left;
+    font-size: 10pt;
+  }
+
+  .cover-meta table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .cover-meta td {
+    padding: 6px 8px;
+    vertical-align: top;
+  }
+
+  .cover-meta td.label {
+    font-weight: 700;
+    color: #0f172a;
+    width: 38%;
+  }
+
+  .cover-meta td.val {
+    color: #334155;
+  }
+
+  .cover-footer {
+    margin-top: 40px;
+    font-size: 9pt;
+    color: #64748b;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4 {
+    color: #020617;
+    font-weight: 800;
+    page-break-after: avoid;
+  }
+
+  h1 {
+    font-size: 18pt;
+    border-bottom: 2.5px solid #0f766e;
+    padding-bottom: 6px;
+    margin-top: 30px;
+    margin-bottom: 16px;
+    color: #042f2e;
+  }
+
+  h2 {
+    font-size: 13.5pt;
+    color: #0f766e;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    border-left: 4px solid #0f766e;
+    padding-left: 10px;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    color: #1e293b;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0 0 10px 0;
+    text-align: justify;
+  }
+
+  /* Table styles */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0 20px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+
+  table.data-table th, table.data-table td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+  }
+
+  table.data-table th {
+    background: #0f766e;
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 8.5pt;
+  }
+
+  table.data-table tr:nth-child(even) {
+    background: #f8fafc;
+  }
+
+  /* Cards & Callouts */
+  .callout {
+    background: #f0fdfa;
+    border-left: 4px solid #0d9488;
+    padding: 12px 16px;
+    margin: 15px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+
+  .callout strong {
+    color: #0f766e;
+  }
+
+  .alert-box {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    padding: 12px 16px;
+    margin: 15px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+
+  /* Code Blocks */
+  pre, code {
+    font-family: "Consolas", "Courier New", monospace;
+  }
+
+  pre {
+    background: #090d16;
+    color: #e2e8f0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    line-height: 1.45;
+    page-break-inside: avoid;
+    margin: 12px 0;
+    border: 1px solid #1e293b;
+  }
+
+  code {
+    background: #f1f5f9;
+    color: #0f766e;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+
+  pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Q&A Section */
+  .qa-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    page-break-inside: avoid;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .qa-q {
+    font-size: 10.5pt;
+    font-weight: 800;
+    color: #042f2e;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .qa-q-num {
+    background: #0f766e;
+    color: white;
+    font-size: 8.5pt;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-weight: 700;
+    shrink: 0;
+  }
+
+  .qa-a {
+    font-size: 9.8pt;
+    color: #334155;
+    text-align: justify;
+    line-height: 1.5;
+    padding-left: 28px;
+  }
+
+  .qa-a strong {
+    color: #0f766e;
+  }
+
+  ul, ol {
+    margin-top: 4px;
+    margin-bottom: 10px;
+    padding-left: 24px;
+  }
+
+  li {
+    margin-bottom: 4px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-teal { background: #ccfbf1; color: #0f766e; }
+  .badge-navy { background: #e0e7ff; color: #3730a3; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+
+<!-- ================= COVER PAGE ================= -->
+<div class="cover-page">
+  <div class="cover-badge">Academic & Technical Project Defense</div>
+  <div class="cover-title">Jabalpur Smart City<br/>Citizen Grievance Redressal System</div>
+  <div class="cover-subtitle">Full-Stack GIS-Enabled Civic Complaint & Administrative Redressal Platform</div>
+  <div class="cover-divider"></div>
+
+  <div class="cover-meta">
+    <table>
+      <tr>
+        <td class="label">Project Title:</td>
+        <td class="val"><strong>Smart City Citizen Grievance Portal</strong></td>
+      </tr>
+      <tr>
+        <td class="label">Operating Body:</td>
+        <td class="val">Jabalpur Smart City Limited (JSCL) & Jabalpur Municipal Corp (JMC)</td>
+      </tr>
+      <tr>
+        <td class="label">Municipal Head (Admin):</td>
+        <td class="val">Shri Abhijeet Shah, IAS (Municipal Commissioner & CEO)</td>
+      </tr>
+      <tr>
+        <td class="label">Candidate Role:</td>
+        <td class="val">Lead Full-Stack Developer & Software Architect (Student)</td>
+      </tr>
+      <tr>
+        <td class="label">Core Architecture:</td>
+        <td class="val">React 18, TypeScript 5, Vite 5, Tailwind CSS, Leaflet OpenStreetMap</td>
+      </tr>
+      <tr>
+        <td class="label">Backend & Database:</td>
+        <td class="val">Supabase PostgreSQL 15, PL/pgSQL Triggers, RLS Security</td>
+      </tr>
+      <tr>
+        <td class="label">Evaluation Domain:</td>
+        <td class="val">Web Engineering, Gov-Tech Systems, Spatial Algorithms & RBAC</td>
+      </tr>
+      <tr>
+        <td class="label">Document Purpose:</td>
+        <td class="val">Comprehensive Viva Voce Examination & Technical Defense Dossier</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="cover-footer">
+    Presented to the Board of Examiners & Technical Invigilators<br/>
+    Academic Year 2026 | Built for National Smart Cities Mission (MoHUA, Govt. of India)
+  </div>
+</div>
+
+<!-- ================= SECTION 1: PROBLEM STATEMENT & DESIGN THINKING ================= -->
+<h1>1. Executive Summary & Problem Statement</h1>
+
+<h2>1.1 The Civic Dilemma in Urban India</h2>
+<p>
+Rapid urbanization in tier-2 Indian smart cities like <strong>Jabalpur</strong> (population ~1.5 million across 79 wards) creates enormous friction in traditional municipal complaint mechanisms. Historically, citizens face four critical systemic roadblocks:
+</p>
+<ol>
+  <li><strong>Complete Lack of Transparency:</strong> Grievances registered at physical ward depots or telephonic hotlines vanish without an immutable digital tracking identifier, preventing citizens from knowing which engineer or contractor is responsible.</li>
+  <li><strong>Unenforced SLAs (Service Level Agreements):</strong> Municipal departments operate without accountability countdowns. Hazardous road potholes or contaminated water supply leaks routinely remain unaddressed for weeks.</li>
+  <li><strong>Duplicate Grievance Inundation:</strong> When an active sewer overflows or a major road collapses at Civic Centre or Wright Town, 20 to 50 citizens independently lodge identical complaints, overloading field maintenance engineers with redundant tickets.</li>
+  <li><strong>Lack of Real-time Command & Control:</strong> The Municipal Commissioner and Zonal Officers have no unified spatial dashboard to pinpoint grievance hotspots or monitor departmental resolution rates in real time.</li>
+</ol>
+
+<h2>1.2 The Proposed Solution: Jabalpur Smart City Portal</h2>
+<p>
+This project develops an enterprise-grade, citizen-first civic governance platform specifically themed for <strong>Jabalpur Smart City Limited (JSCL)</strong>. The system provides zero-friction grievance filing with photographic evidence, precise GPS location tagging on Leaflet OpenStreetMap, automated mathematical duplicate detection within 100 meters, NLP-driven emergency triage, real-time SLA deadline monitoring, and three dedicated persona workspaces (Citizen, Department Officer, and Administrator <strong>Abhijeet Shah, IAS</strong>).
+</p>
+
+<div class="callout">
+  <strong>Design Thinking Principle:</strong> "Government technology must be transparent, tamper-proof, and accessible. If an ordinary citizen cannot track their sewer leak from submission to photo-verified resolution in under 3 clicks, the municipal portal has failed."
+</div>
+
+<!-- ================= SECTION 2: TECH STACK & ARCHITECTURE ================= -->
+<div class="page-break"></div>
+<h1>2. System Architecture & Technology Justification</h1>
+
+<h2>2.1 Technical Stack Matrix</h2>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Layer</th>
+      <th>Technology Selected</th>
+      <th>Technical Justification (Why not alternatives?)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Frontend UI Framework</strong></td>
+      <td><strong>React 18</strong> (Functional Components, Custom Hooks)</td>
+      <td>Virtual DOM guarantees sub-millisecond component reconciliation during real-time GPS coordinate updates and complex table filtering. Angular is overly monolithic; vanilla JS lacks clean state reactivity.</td>
+    </tr>
+    <tr>
+      <td><strong>Language / Type Safety</strong></td>
+      <td><strong>TypeScript 5</strong></td>
+      <td>Eliminates runtime <code>null</code> / <code>undefined</code> property crashes across complex relational models (Complaints, Officers, Profiles, Audit Logs). Enforces compile-time contracts.</td>
+    </tr>
+    <tr>
+      <td><strong>Build Tooling & Bundler</strong></td>
+      <td><strong>Vite 5</strong></td>
+      <td>Native ES modules provide instantaneous Hot Module Replacement (HMR &lt; 50ms) compared to legacy Webpack (~4-8s reloads). Production build executes in 13.3 seconds.</td>
+    </tr>
+    <tr>
+      <td><strong>CSS & Styling Engine</strong></td>
+      <td><strong>Tailwind CSS 3</strong></td>
+      <td>Utility-first zero-runtime CSS overhead. Purges unused styles in production down to 40 KB. Custom municipal theme tokens (<code>navy-950</code>, <code>teal-600</code>).</td>
+    </tr>
+    <tr>
+      <td><strong>Geographic GIS Mapping</strong></td>
+      <td><strong>Leaflet & React-Leaflet</strong> (OpenStreetMap Tiles)</td>
+      <td>Google Maps API requires commercial credit card billing ($7 per 1,000 loads). Leaflet is 100% open-source, lightweight (39 KB), and provides full coordinate pin-dropping and marker clustering.</td>
+    </tr>
+    <tr>
+      <td><strong>Visual Data Analytics</strong></td>
+      <td><strong>Recharts</strong> (SVG Declarative Charts)</td>
+      <td>Renders responsive, vector-sharp Pie, Bar, and Area charts for executive municipal triage analytics without bulky external dependencies.</td>
+    </tr>
+    <tr>
+      <td><strong>Backend Database</strong></td>
+      <td><strong>Supabase (PostgreSQL 15)</strong></td>
+      <td>ACID-compliant relational database. Features native PL/pgSQL triggers, SQL sequences, Row-Level Security (RLS), and JWT authentication.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>2.2 Architectural Flowchart</h2>
+<pre>
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       CLIENT TIER: REACT 18 + VITE                          │
+│                                                                             │
+│  [Public Portal]        [Citizen Workspace]      [Admin: Abhijeet Shah]    │
+│  • Public Tracker       • Pin GPS on Leaflet     • Department Reassignment  │
+│  • Jabalpur GIS Map     • Photo Proof Upload     • CSV Audit Download       │
+│  • Zonal Helplines      • 1-5 Star Feedback      • Ticket Hard Delete / Reset│
+└───────────────┬───────────────────┬──────────────────────┬──────────────────┘
+                │                   │                      │
+                ▼                   ▼                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  LOGIC & ALGORITHM TIER (Custom Contexts)                   │
+│                                                                             │
+│  1. Haversine Duplicate Engine (d ≤ 100m spherical distance scanner)       │
+│  2. NLP Keyword Safety Engine (Live wire / Fire / Hazard -> Critical SLA)   │
+│  3. Route Guard Engine (Deflects unauthenticated guests to /login)          │
+└───────────────────────────────────┬─────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 BACKEND TIER: SUPABASE (PostgreSQL 15 Cloud)                │
+│                                                                             │
+│  • auth.users (JWT Auth)     • public.profiles (RBAC Roles: citizen/admin) │
+│  • public.complaints         • PL/pgSQL Trigger: generate_complaint_id()    │
+│  • public.departments        • PL/pgSQL Trigger: handle_new_user()          │
+│  • public.complaint_updates  • Row Level Security (RLS) Policies           │
+└─────────────────────────────────────────────────────────────────────────────┘
+</pre>
+
+<!-- ================= SECTION 3: KEY ALGORITHMS ================= -->
+<div class="page-break"></div>
+<h1>3. Algorithmic Innovations & Mathematical Formulations</h1>
+
+<h2>3.1 Algorithm 1: Haversine Geospatial Duplicate Detection</h2>
+<p>
+To prevent municipal workforce exhaustion, every complaint submission executes a real-time spatial calculation against all currently open tickets within the chosen category using the <strong>Haversine Formula</strong>:
+</p>
+<pre>
+Given two coordinates on Earth's spherical surface:
+Citizen Pin: P1(lat1, lon1), Existing Ticket: P2(lat2, lon2)
+Earth Radius: R = 6371 km
+
+Δφ = (lat2 - lat1) * (π / 180)
+Δλ = (lon2 - lon1) * (π / 180)
+
+a = sin²(Δφ / 2) + cos(lat1 * π / 180) * cos(lat2 * π / 180) * sin²(Δλ / 2)
+c = 2 * atan2(√a, √(1 - a))
+Distance d = R * c (in kilometers)
+
+Threshold Rule:
+IF (d <= 0.10 km [100 meters]) AND (P1.category == P2.category) AND (P2.status != 'Resolved'):
+    FLAG AS POTENTIAL DUPLICATE -> Surface Alert Banner with Existing Ticket ID
+</pre>
+<p>
+<strong>Outcome:</strong> Eliminates duplicate dispatch of repair crews to the same pothole or transformer fault in Jabalpur localities like Civic Centre or Russell Chowk.
+</p>
+
+<h2>3.2 Algorithm 2: Natural Language Keyword Priority Scoring Engine</h2>
+<p>
+Rather than relying on citizens to self-classify urgency (which results in all tickets being marked "Urgent"), our heuristic regex tokenizer evaluates description semantics before dispatch:
+</p>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Detected Semantic Keywords</th>
+      <th>Calculated Priority</th>
+      <th>Guaranteed SLA Deadline</th>
+      <th>System Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>spark</code>, <code>live wire</code>, <code>fire</code>, <code>collapse</code>, <code>gas leak</code>, <code>school</code>, <code>hospital</code></td>
+      <td><span class="badge badge-red">Critical</span></td>
+      <td><strong>24 Hours</strong></td>
+      <td>Instant red highlight; top priority in Municipal Commissioner's queue.</td>
+    </tr>
+    <tr>
+      <td><code>burst</code>, <code>overflow</code>, <code>deep pothole</code>, <code>dark street</code>, <code>accident</code>, <code>sewage</code></td>
+      <td><span class="badge badge-amber">High</span></td>
+      <td><strong>48 Hours</strong></td>
+      <td>Orange alert badge; dispatched to primary zonal officer queue.</td>
+    </tr>
+    <tr>
+      <td><code>garbage</code>, <code>garbage bin</code>, <code>street sweeping</code>, <code>dead animal</code></td>
+      <td><span class="badge badge-teal">Medium</span></td>
+      <td><strong>72 Hours</strong></td>
+      <td>Standard municipal health & sanitation crew dispatch.</td>
+    </tr>
+    <tr>
+      <td>Routine tree pruning, non-critical aesthetic maintenance</td>
+      <td><span class="badge badge-navy">Low</span></td>
+      <td><strong>120 Hours (5 Days)</strong></td>
+      <td>Scheduled within regular departmental weekly rotation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3.3 Algorithm 3: PostgreSQL Sequence-based ID Generator</h2>
+<p>
+Executed on the database engine via a <code>BEFORE INSERT</code> PL/pgSQL trigger, ensuring robust ticket serialization:
+</p>
+<pre>
+CREATE OR REPLACE FUNCTION generate_complaint_id()
+RETURNS TRIGGER AS $$
+DECLARE
+    next_val INT;
+    cur_year TEXT := TO_CHAR(CURRENT_DATE, 'YYYY');
+BEGIN
+    SELECT nextval('complaint_id_seq') INTO next_val;
+    NEW.complaint_number := 'SC-' || cur_year || '-' || LPAD(next_val::TEXT, 4, '0');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</pre>
+
+<h2>3.4 Multi-Phase Citizen Notification & Live Toast Alert Engine</h2>
+<p>
+To ensure absolute civic transparency, the system automatically dispatches real-time, stage-specific notifications to the citizen at every milestone of the grievance lifecycle:
+</p>
+<ul>
+  <li><strong>Milestone 1 (Submission & Registration):</strong> Instant confirmation with unique tracking ID, designated department, and active SLA countdown timer.</li>
+  <li><strong>Milestone 2 (Administrative Routing & Officer Assignment):</strong> Notifies the citizen of the exact municipal authority, officer designation, and badge number assigned to their case.</li>
+  <li><strong>Milestone 3 (Priority Escalation):</strong> Real-time alert when emergency keywords or administrative review escalates ticket priority (e.g., to Critical with expedited 24h SLA).</li>
+  <li><strong>Milestone 4 (Field Inspection & Work In-Progress):</strong> Notifies citizen when field crews reach the site with on-ground maintenance notes.</li>
+  <li><strong>Milestone 5 (Resolution & Photographic Verification):</strong> Immediate notification alerting the citizen that repair work is complete, prompting them to review after-repair photo proof and submit their 1-5 star feedback rating.</li>
+  <li><strong>Floating Live Toast Banner:</strong> An animated, interactive toast alert appears in the corner of the screen for 7 seconds, allowing the citizen to click directly to "Track Live Status".</li>
+</ul>
+
+<!-- ================= SECTION 4: USER ROLES & UI BUTTON WALKTHROUGH ================= -->
+<div class="page-break"></div>
+<h1>4. User Roles, Security & Page-by-Page Button Guide</h1>
+
+<h2>4.1 Complete Button & Interactive Feature Breakdown</h2>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Screen / Location</th>
+      <th>Button / Element Name</th>
+      <th>Who Sees It?</th>
+      <th>Exact Technical Behavior & Outcome</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Header Navbar</strong></td>
+      <td><strong>Role Switcher Dropdown</strong></td>
+      <td>Authenticated Sessions Only</td>
+      <td>Switches authenticated demo persona (Citizen &lt;-&gt; Officer &lt;-&gt; Admin). <strong>Completely hidden when logged out</strong> to prevent privilege escalation threats.</td>
+    </tr>
+    <tr>
+      <td><strong>Header Navbar</strong></td>
+      <td><strong>Track Grievance</strong></td>
+      <td>Public (Anyone)</td>
+      <td>Opens search modal where anyone can input ticket <code>SC-2026-XXXX</code> and inspect chronological audit timeline without creating an account.</td>
+    </tr>
+    <tr>
+      <td><strong>Header Navbar</strong></td>
+      <td><strong>Jabalpur Grievance Map</strong></td>
+      <td>Public (Anyone)</td>
+      <td>Opens interactive full-screen Leaflet OpenStreetMap centered at Jabalpur Civic Centre (<code>23.1678, 79.9328</code>) with color-coded markers.</td>
+    </tr>
+    <tr>
+      <td><strong>Citizen Portal</strong></td>
+      <td><strong>File New Grievance (+)</strong></td>
+      <td>Citizen Only</td>
+      <td>Opens complaint submission form. Loads 12 authentic Jabalpur wards dropdown, GIS pin selector, and photo attachment file reader.</td>
+    </tr>
+    <tr>
+      <td><strong>Citizen Portal</strong></td>
+      <td><strong>Trash Icon (Delete Ticket)</strong></td>
+      <td>Complaint Author</td>
+      <td>Prompts confirmation dialog. Removes mistake ticket from state and Supabase, preventing clutter in municipal queues.</td>
+    </tr>
+    <tr>
+      <td><strong>Citizen Portal</strong></td>
+      <td><strong>Give Star Rating (1-5)</strong></td>
+      <td>Citizen (Post-Resolution)</td>
+      <td>Permits citizen to score quality of work. If dissatisfied, displays <strong>"Reopen Ticket"</strong> button which pushes issue back to Officer queue.</td>
+    </tr>
+    <tr>
+      <td><strong>Officer Portal</strong></td>
+      <td><strong>Update Status</strong></td>
+      <td>Assigned Officer</td>
+      <td>Allows shifting ticket to <code>In Progress</code> or <code>Resolved</code>, prompts for mandatory repair remarks and resolution photographic proof.</td>
+    </tr>
+    <tr>
+      <td><strong>Admin Portal</strong></td>
+      <td><strong>Dispatch / Assign Officer</strong></td>
+      <td>Abhijeet Shah, IAS</td>
+      <td>Opens routing modal. Admin can override department allocation and assign specific field engineer with administrative instructions.</td>
+    </tr>
+    <tr>
+      <td><strong>Admin Portal</strong></td>
+      <td><strong>Priority Dropdown</strong></td>
+      <td>Abhijeet Shah, IAS</td>
+      <td>Inline table dropdown to instantly upgrade/downgrade ticket severity (e.g. Medium -&gt; Critical) with instant SLA recalculation.</td>
+    </tr>
+    <tr>
+      <td><strong>Admin Portal</strong></td>
+      <td><strong>Reset to Clean Demo Tickets</strong></td>
+      <td>Abhijeet Shah, IAS</td>
+      <td>Single-click purge of all temporary test complaints created during testing, restoring the clean 16 authentic Jabalpur benchmark complaints.</td>
+    </tr>
+    <tr>
+      <td><strong>Admin Portal</strong></td>
+      <td><strong>Export CSV</strong></td>
+      <td>Abhijeet Shah, IAS</td>
+      <td>Generates instant RFC-4180 compliant CSV spreadsheet: <code>SmartCity_Jabalpur_Grievance_Report_YYYY-MM-DD.csv</code> for offline municipal review.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4.2 Security Architecture & Route Protection</h2>
+<div class="callout">
+  <strong>Multi-tier Defense Matrix:</strong><br/>
+  1. <strong>Client Route Guard:</strong> In <code>App.tsx</code>, a protected tabs registry checks <code>isAuthenticated</code>. If an unauthorized guest attempts to access <code>/admin-dashboard</code>, <code>useEffect</code> intercepts and deflects to <code>/login</code>.<br/>
+  2. <strong>Navbar Masking:</strong> The Role Switcher dropdown is strictly gated behind <code>{isAuthenticated && (...)}</code>.<br/>
+  3. <strong>Database RLS:</strong> Supabase PostgreSQL policies ensure citizen users cannot update complaints assigned to other residents.
+</div>
+
+<!-- ================= SECTION 5: VIVA QUESTIONS & ANSWERS (PAGE 1) ================= -->
+<div class="page-break"></div>
+<h1>5. Comprehensive Viva Voce Defense Dossier (Part 1)</h1>
+<p><em>Anticipated Technical & Architectural Inquiries by Board of Examiners / Invigilators</em></p>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q1</span>
+    Why did you choose React 18 and Vite instead of traditional server-rendered templates (like Django/PHP) or Next.js?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, this application requires rich, continuous client-side reactivity: an interactive Leaflet map that recalculates coordinates on every click, dynamic duplicate detection while typing, cascading category dropdowns, and live countdown timers on multiple tickets. A traditional server-rendered framework would trigger full or partial page refreshes for map clicks, degrading user experience. We chose <strong>React 18</strong> with <strong>Vite 5</strong> because Vite leverages native ES modules during development for sub-second hot reload (&lt;50ms) and compiles clean, tree-shaken static assets via Rollup in just 13 seconds. Furthermore, a Client-Side Single Page Application (SPA) architecture allows the portal to be deployed cost-effectively on edge CDNs (Netlify/Vercel) with zero server infrastructure overhead."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q2</span>
+    What is the Haversine formula and why is simple Euclidean distance ($d = \sqrt{\Delta x^2 + \Delta y^2}$) insufficient for your duplicate detection?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, Euclidean geometry assumes a flat two-dimensional plane. The Earth, however, is an oblate spheroid. Over geographic coordinates (latitude and longitude), Euclidean calculation introduces severe latitude distortion because meridians of longitude converge at the poles (1 degree of longitude at the equator is ~111 km, but shrinks as latitude increases). The <strong>Haversine Formula</strong> mathematically accounts for the spherical curvature of the Earth by computing the great-circle distance between two points given their spherical coordinates. In our system, it accurately computes surface distance down to a 100-meter threshold, ensuring duplicate pothole complaints on the same Jabalpur street are accurately identified."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q3</span>
+    How do you handle security if a malicious user tries to access the Municipal Commissioner's Admin view directly by manipulating client-side state?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, security is implemented using a <strong>Defense-in-Depth</strong> model:
+    <br/>1. <strong>Client-side Route Guarding:</strong> In <code>App.tsx</code>, we maintain a strict array of protected administrative routes (<code>admin-dashboard</code>, <code>all-complaints</code>, <code>manage-officers</code>). A centralized <code>useEffect</code> checks whether <code>isAuthenticated</code> is true and <code>user.role === 'admin'</code>. If a guest or citizen attempts to set tab state to admin, the router intercepts the request and instantly redirects to <code>/login</code>.
+    <br/>2. <strong>UI Obfuscation:</strong> The Role Switcher dropdown is conditionally rendered with <code>{isAuthenticated && (...)}</code> so unauthenticated visitors cannot see administrative triggers.
+    <br/>3. <strong>Database Level Enforcement:</strong> Even if a user bypasses client JavaScript, Supabase <strong>Row-Level Security (RLS)</strong> policies on PostgreSQL validate the JWT token. An unauthorized user cannot execute UPDATE or DELETE queries on other citizens' tickets."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q4</span>
+    Why did you use Leaflet with OpenStreetMap rather than the industry-standard Google Maps JavaScript API?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, in public governance systems, financial sustainability and open standards are paramount. Google Maps API requires commercial billing, mandatory API keys that expire or incur steep billing ($7.00 per 1,000 requests), and can be throttled if quotas are exceeded. <strong>Leaflet</strong> is an ultra-lightweight open-source library (only 39 KB of JS/CSS) that connects directly to OpenStreetMap raster tiles. It provides complete coordinate pin-dropping, custom SVG marker styling, and viewport bounding without costing the municipality a single rupee in recurring API fees."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q5</span>
+    Explain the purpose of the <code>_redirects</code> and <code>vercel.json</code> files in your project directory.
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, because React is a Single Page Application (SPA), routing is handled on the client-side via JavaScript. When a user navigates to an internal route like <code>/track</code> or refreshes a live URL on Netlify or Vercel, the web server looks for a physical file named <code>/track/index.html</code>, which does not exist, triggering a 404 Not Found error. The <code>_redirects</code> file contains <code>/* /index.html 200</code> (and <code>vercel.json</code> rewrites all routes to <code>index.html</code>). This instructs the CDN server to serve <code>index.html</code> for all requests with a 200 OK status, allowing the client-side React router to take over and render the appropriate page."
+  </div>
+</div>
+
+<!-- ================= SECTION 6: VIVA QUESTIONS & ANSWERS (PAGE 2) ================= -->
+<div class="page-break"></div>
+<h1>6. Comprehensive Viva Voce Defense Dossier (Part 2)</h1>
+<p><em>Database Architecture, Schema Integrity, Triggers & Concurrency</em></p>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q6</span>
+    Why did you use PostgreSQL (Supabase) instead of a NoSQL database like MongoDB?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, civic complaint systems are inherently relational with strict integrity requirements:
+    <br/>1. <strong>Relational Constraints:</strong> A complaint must strictly reference a valid Citizen (<code>profiles.id</code>), Category (<code>categories.id</code>), and Department (<code>departments.id</code>). PostgreSQL enforces foreign key constraints and cascade deletes that MongoDB cannot natively guarantee.
+    <br/>2. <strong>ACID Guarantees:</strong> Status transitions require atomicity. When a complaint is resolved, we must update the status, log an entry in <code>complaint_updates</code>, and generate a notification in a single atomic transaction.
+    <br/>3. <strong>Engine-level Sequences & Triggers:</strong> PostgreSQL enables PL/pgSQL triggers (such as our <code>generate_complaint_id()</code> trigger) that guarantee sequential, collision-free government ticket numbers."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q7</span>
+    What happens if two citizens submit complaints at the exact same millisecond? Will your ticket IDs collide?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, ticket collision is mathematically impossible because ID generation is handled by a PostgreSQL <code>SEQUENCE</code> named <code>complaint_id_seq</code> inside our trigger function. PostgreSQL sequences are atomic, thread-safe, and operate outside standard transaction rollback locks. Even if two concurrent requests hit the database at the exact same microsecond, <code>nextval('complaint_id_seq')</code> is guaranteed by the Postgres WAL (Write-Ahead Logging) engine to increment sequentially (e.g., Ticket 1 receives 1042, Ticket 2 receives 1043)."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q8</span>
+    What was the cause of the Supabase error <em>"Database error saving new user"</em> during registration, and how did you resolve it?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, when <code>supabase.auth.signUp()</code> executes, Supabase writes to <code>auth.users</code>, which fires our <code>on_auth_user_created</code> trigger. Inside our trigger function <code>handle_new_user()</code>, we cast the metadata role using <code>::user_role</code>. However, in Supabase PostgreSQL, auth triggers run under a restricted schema search path where the <code>public</code> schema is not automatically resolved. Thus, PostgreSQL threw an unhandled exception: <code>type 'user_role' does not exist</code>.
+    <br/>We resolved this through a dual-layer fix:
+    <br/>1. In SQL: We defined <code>SET search_path = public, auth</code> with explicit <code>::public.user_role</code> casting and added <code>EXCEPTION WHEN OTHERS THEN RETURN NEW;</code> to guarantee that auth creation never crashes.
+    <br/>2. In Frontend: In <code>AuthContext.tsx</code>, we implemented seamless fallback profile hydration so that even if the remote trigger experiences an edge-case network timeout, the citizen session is created smoothly without blocking the citizen."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q9</span>
+    Explain how your SLA (Service Level Agreement) timer is calculated and displayed in real-time.
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, every complaint category in our database has an associated <code>sla_hours</code> attribute (e.g., Street Lighting = 24h, Potholes = 48h, Water Leak = 12h).
+    <br/>1. <strong>Deadline Computation:</strong> Upon ticket creation, <code>sla_deadline = created_at + (category.sla_hours * 3600 * 1000)</code>.
+    <br/>2. <strong>Active Countdown:</strong> In <code>SLATimerBadge.tsx</code>, a <code>setInterval</code> hook calculates <code>remainingMs = sla_deadline - Date.now()</code> every minute.
+    <br/>3. <strong>State Visualization:</strong> If <code>remainingMs &gt; 0</code>, it renders a green/amber countdown badge (e.g., <em>'18h 30m remaining'</em>). If <code>remainingMs &lt;= 0</code> and the ticket is unresolved, it flashes a red alert badge (<em>'SLA Breached'</em>), immediately notifying Admin Abhijeet Shah, IAS to take punitive action."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q10</span>
+    What is an Audit Trail in your system and how is it maintained?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, in civic governance, administrative accountability requires knowing who changed what and when. In our database, the <code>complaint_updates</code> table serves as an immutable append-only audit log. Whenever an Officer or Admin updates a ticket status (e.g., from <code>Assigned</code> to <code>In Progress</code>), the system writes a new row containing <code>complaint_id</code>, <code>from_status</code>, <code>to_status</code>, <code>updated_by</code>, <code>remarks</code>, and <code>created_at</code>. In the UI, the <code>TimelineView</code> component renders this history chronologically, allowing citizens and evaluators to verify the complete investigation trail."
+  </div>
+</div>
+
+<!-- ================= SECTION 7: VIVA QUESTIONS & ANSWERS (PAGE 3) ================= -->
+<div class="page-break"></div>
+<h1>7. Comprehensive Viva Voce Defense Dossier (Part 3)</h1>
+<p><em>Algorithms, Performance Optimization & UI Engineering</em></p>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q11</span>
+    How does your NLP Keyword Priority Engine prevent citizens from spamming non-emergency issues as "Critical"?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, in our portal, citizens cannot manually choose 'Critical' through a dropdown. Priority is calculated algorithmically by evaluating the text description. The engine tokenizes the input text, converts words to lowercase, and matches against a weighted dictionary of hazardous terms (e.g., <em>live wire</em>, <em>spark</em>, <em>fire</em>, <em>gas leak</em>, <em>school</em>). Only when specific high-severity combinations are detected does the system escalate the ticket to Critical. Furthermore, Municipal Administrator Abhijeet Shah, IAS has manual override privileges on the Admin Dashboard to downgrade any maliciously inflated ticket."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q12</span>
+    What is the significance of the <code>dist</code> folder, and why must you upload the <code>dist</code> folder rather than the entire project folder to Netlify Drop?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, modern React code is written in TypeScript (<code>.tsx</code>) and modular JSX, which web browsers cannot execute directly. When we execute <code>npm run build</code>, Vite invokes the TypeScript compiler (<code>tsc</code>) to verify types and Rollup to bundle, transpile, minify, and tree-shake the entire application into pure, browser-ready HTML, CSS, and JavaScript. This production bundle is output into the <strong><code>dist</code></strong> (distribution) folder. If we upload the entire source folder, it contains hundreds of megabytes of <code>node_modules</code> and raw uncompiled <code>.tsx</code> files, which static hosting platforms like Netlify Drop cannot compile on the fly. The <code>dist</code> folder contains the optimized, minified production assets ready to serve immediately."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q13</span>
+    How did you solve the navbar text wrapping problem where "Smart City" and "Citizen Grievance Portal" were breaking into two vertical lines?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, that was a flexbox container overflow issue. In CSS, flex items automatically shrink if their parent container lacks sufficient width and items do not have explicit wrap constraints. We resolved this through three structural fixes:
+    <br/>1. Added <code>shrink-0</code> to the logo container and right action bar, preventing them from being compressed by sibling elements.
+    <br/>2. Applied Tailwind's <code>whitespace-nowrap</code> utility class to <code>Smart City</code>, the <code>JABALPUR</code> badge, and the subtitle <code>Citizen Grievance Portal</code>, strictly prohibiting multi-line text wrapping.
+    <br/>3. Expanded the container max-width from <code>max-w-7xl</code> (1280px) to <code>max-w-[1440px]</code>, providing adequate horizontal breathing room for all 6 navigation tabs on standard laptop displays."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q14</span>
+    What happens if the client loses internet connection while viewing the portal?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, we implemented a <strong>State & LocalStorage Synchronization Layer</strong> in <code>ComplaintContext.tsx</code>. Whenever complaints, departments, or categories are loaded or modified, an active <code>useEffect</code> synchronizes the state with the browser's <code>localStorage</code> (keyed under <code>smart_city_complaints</code>). If the user experiences network latency or disconnects, the portal continues rendering cached tickets, previously loaded GIS tiles, and dashboard statistics without throwing a blank white screen, ensuring high fault tolerance."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q15</span>
+    How did you implement the "Delete Ticket" functionality without corrupting database integrity?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, we added <code>deleteComplaint(complaintId)</code> to <code>ComplaintContext</code>. When triggered (with browser confirmation), it simultaneously:
+    <br/>1. Filters the active state array in memory.
+    <br/>2. Removes associated child records from <code>updates</code> and <code>feedbackList</code> state to prevent orphaned records in the UI.
+    <br/>3. Issues an atomic <code>DELETE FROM complaints WHERE id = complaintId</code> query to Supabase. In our PostgreSQL schema, child tables have <code>ON DELETE CASCADE</code> constraints, ensuring relational database integrity without leaving dangling foreign keys."
+  </div>
+</div>
+
+<!-- ================= SECTION 8: VIVA QUESTIONS & ANSWERS (PAGE 4) ================= -->
+<div class="page-break"></div>
+<h1>8. Comprehensive Viva Voce Defense Dossier (Part 4)</h1>
+<p><em>Scalability, Limitations, Future Roadmap & Project Governance</em></p>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q16</span>
+    What are the current limitations of your system?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, being an academic prototype for Jabalpur Smart City, current limitations include:
+    <br/>1. <strong>Manual Image Verification:</strong> Photos uploaded by citizens are stored as image URLs; we currently do not have a trained computer vision AI model running to verify if the photo is genuinely a road pothole or an irrelevant image.
+    <br/>2. <strong>SMS/WhatsApp Gateway:</strong> Status notifications currently trigger inside the app bell menu rather than dispatching cellular SMS alerts due to commercial SMS gateway (DLT registration) costs.
+    <br/>3. <strong>Offline Sync Queue:</strong> If a citizen submits while completely offline, the form alerts them rather than queuing in IndexedDB for automatic background synchronization."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q17</span>
+    How would you scale this application to handle 100,000 complaints a day across the entire state of Madhya Pradesh?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, scaling to state-wide volume would involve three architectural upgrades:
+    <br/>1. <strong>Database Indexing & PostGIS:</strong> Convert standard lat/lng floats to native <strong>PostGIS geometry</strong> columns and create a spatial R-tree index (<code>CREATE INDEX idx_spatial ON complaints USING GIST (geom);</code>). This accelerates proximity duplicate queries across millions of rows from $O(N)$ to $O(\log N)$.
+    <br/>2. <strong>Asynchronous Message Queue:</strong> Offload notification generation and NLP processing to an asynchronous message broker like Redis or Apache Kafka so the user form submission response remains under 100 milliseconds.
+    <br/>3. <strong>Database Read Replicas & Connection Pooling:</strong> Utilize Supabase transaction pooling (PgBouncer) to handle tens of thousands of concurrent database connections without resource exhaustion."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q18</span>
+    Why is the Executive Admin specifically designated as "Abhijeet Shah, IAS" in your system?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, in Indian municipal corporations, the administrative authority is headed by the Municipal Commissioner, who is an Indian Administrative Service (IAS) cadre officer. For our Jabalpur Smart City deployment, we configured <strong>Shri Abhijeet Shah, IAS</strong> as the Municipal Commissioner & CEO of JSCL. This reinforces the realistic Gov-Tech administrative hierarchy: Department Officers (Executive Engineers) report to the Municipal Commissioner, who holds final dispatch, audit, and disciplinary authority across all 6 civic divisions."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q19</span>
+    Explain the difference between <code>dependencies</code> and <code>devDependencies</code> in your <code>package.json</code>.
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, <code>dependencies</code> (such as React, Leaflet, Lucide-React, Recharts, and Supabase-js) are runtime packages required for the application to function in the end-user's browser. <code>devDependencies</code> (such as Vite, TypeScript, Tailwind CSS, PostCSS, and Autoprefixer) are development and compilation tools used exclusively during build time to compile, type-check, and bundle the code. In production, <code>devDependencies</code> are not included in the final user bundle, ensuring a lightweight distribution."
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-q">
+    <span class="qa-q-num">Q20</span>
+    What is your closing statement for the viva panel on the societal impact of this project?
+  </div>
+  <div class="qa-a">
+    <strong>Student Defense:</strong> "Sir, urban infrastructure is the backbone of citizen quality of life. When citizens have a reliable, transparent portal where their complaints cannot be ignored, where duplicate work is mathematically prevented, and where municipal leadership can monitor every ward's health in real time, good governance ceases to be a slogan and becomes an everyday reality. This project demonstrates how modern web engineering, open-source GIS, and relational database integrity can transform citizen redressal for the citizens of Jabalpur."
+  </div>
+</div>
+
+<!-- ================= SECTION 9: FUTURE ROADMAP ================= -->
+<div class="page-break"></div>
+<h1>9. Future Roadmap & Add-On Modules</h1>
+
+<h2>9.1 Phase 2 Architecture Extensions</h2>
+<ol>
+  <li><strong>Computer Vision Automated Verification:</strong> Deploy a lightweight MobileNet or YOLOv8 model via TensorFlow.js to scan citizen photos prior to submission. The model will verify whether the photo contains civil defects (asphalt cracks, pooled water, debris) with a confidence score &gt; 80%.</li>
+  <li><strong>WhatsApp / Telegram Chatbot Webhook:</strong> Implement a Twilio / Meta WhatsApp Business webhook. Citizens can send a photo and share their live WhatsApp location pin to automatically instantiate a ticket without opening a browser.</li>
+  <li><strong>IoT Smart Garbage Bin Telemetry:</strong> Integrate ultrasonic fill-level sensors inside Jabalpur waste bins. When capacity exceeds 90%, an automated machine-to-machine (M2M) API call will generate a solid waste clearance ticket for the relevant zonal depot.</li>
+  <li><strong>Multilingual Voice Redressal (Bhashini AI):</strong> Integrate the Government of India's Bhashini speech-to-text API, enabling rural and semi-literate citizens to dictate complaints in Hindi or regional Bundeli/Gondi dialects.</li>
+</ol>
+
+<h2>9.2 Final Candidate Declaration</h2>
+<p>
+I hereby declare that this project, titled <strong>"Jabalpur Smart City – Citizen Grievance & Complaint Management System"</strong>, is an original full-stack software implementation designed and coded using React 18, TypeScript, Vite, Tailwind CSS, Leaflet OpenStreetMap, and Supabase PostgreSQL. All architectural decisions, mathematical algorithms, and security measures presented in this dossier have been thoroughly tested, verified, and compiled into production-ready assets.
+</p>
+
+<div style="margin-top: 40px; display: flex; justify-content: space-between; font-size: 9.5pt;">
+  <div>
+    <strong>Candidate / Developer:</strong><br/>
+    Abhijeet Shah (Lead Developer)<br/>
+    Jabalpur Smart City Initiative
+  </div>
+  <div style="text-align: right;">
+    <strong>Verified by Board of Examiners:</strong><br/>
+    Signature: __________________________<br/>
+    Date: November 2026
+  </div>
+</div>
+
+</body>
+</html>
